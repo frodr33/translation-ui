@@ -20,7 +20,7 @@ receiveWebSocket.addEventListener('open', () => {
 
 class App extends Component { 
   constructor(props) {
-
+    super(props);
     // Creating Unique User ID
     let name = prompt("Please enter your name");
     let language = prompt("Please enter your preferred language (Will change this to dropdown)", "English");
@@ -146,69 +146,90 @@ class App extends Component {
 
     let lang = language_to_key_map[language] + ":"
 
-    // SET UP LOGIC
-    let language_selection_metadata = "IGNORE:" + language_to_key_map[language]
-    console.log("Sending language selection: " + language_to_key_map[language])
-    submitWebSocket.send(language_selection_metadata)
-
-    // GET REQUEST CONNECT
-    fetch("http://translation-backend.herokuapp.com/connect")
-    .then(res => console.log(res))
-
-    super(props);
     this.state = {
       id: user_id,
-      lang: '',
+      lang: 'en',
       value: '',
       messages: []
     };
+
+    // GET REQUEST CONNECT
+    let otherLanguage;
+    let fetchUrl = "http://translation-backend.herokuapp.com/connect?lang=" + language_to_key_map[language]
+    fetch(fetchUrl ,{
+      method: 'GET',
+      headers: {
+        "access-control-allow-origin" : "*",
+      }
+    })
+    .then(res => res.json())
+    .then(res => {
+      console.log(res);
+      res.forEach((v, i) => {
+        let myKey = language_to_key_map[language]
+        if (v !== myKey) {
+          console.log("OTHER language is v");
+          otherLanguage = v + ":";
+          console.log(otherLanguage)
+        }
+      })
+            
+      this.setState(() => {
+        return {
+          lang: otherLanguage
+        }
+      })
+    })
 
     receiveWebSocket.onmessage = (event) => {
       let messageRecevied = event.data;
       let message_id;
 
-      if (messageRecevied.indexOf("IGNORE") != -1) {
-        // Setup message
-        let langIndex = messageRecevied.indexOf(":") + 1;
-        let lang = messageRecevied.substring(langIndex)
-
-        console.log("setting preferred language")
-        this.setState({
-          lang: lang + ":"
-        })
-        return
-      }
-
       console.log("received message: " + messageRecevied)
       console.log(messageRecevied.indexOf(this.state.id))
 
-      if (messageRecevied.indexOf(this.state.id) != -1) {
-        // Message received was sent by this user
-        message_id = USER_ID;
-      } else {
+      if (messageRecevied.indexOf(this.state.id) == -1) {
+        // Message received was not sent by this user
         message_id = RECIPIENT_ID;
+        let langIndex = messageRecevied.indexOf(":") + 1;
+        let messageIndex = messageRecevied.indexOf(":", langIndex) + 1;
+  
+        messageRecevied = messageRecevied.substring(messageIndex);
+  
+        // Create new message
+        let msg = new Message({
+          id: message_id, 
+          message: messageRecevied
+        })
+  
+        let msgs = this.state.messages;
+        msgs.push(msg);
+        
+        this.setState(() => {
+          return {
+            messages: msgs
+          }
+        })
       }
+    }
+  }
 
-      let langIndex = messageRecevied.indexOf(":") + 1;
-      let messageIndex = messageRecevied.indexOf(":", langIndex) + 1;
 
-      messageRecevied = messageRecevied.substring(messageIndex);
+  componentDidMount() {
+    // Activate the event listener
+    console.log("ADDING EVENT LISTENER")
 
-      // Create new message
-      let msg = new Message({
-        id: message_id, 
-        message: messageRecevied
-      })
-
-      let msgs = this.state.messages;
-      msgs.push(msg);
-      
-      this.setState(() => {
-        return {
-          messages: msgs
+    window.onbeforeunload = async function () {
+      await fetch("http://translation-backend.herokuapp.com/disconnect",{
+        method: 'GET',
+        headers: {
+          "access-control-allow-origin" : "*",
         }
       })
-    }
+      .then(res => console.log(res))
+
+      return "Do you really want to close?"
+  };
   }
 
   myChangeHandler = (event) => {
@@ -220,6 +241,21 @@ class App extends Component {
 
     // Send to backend
     console.log("Sending '" + this.state.value + "' to backend")
+
+    // Create new message
+    let msg = new Message({
+      id: USER_ID, 
+      message: this.state.value
+    })
+  
+    let msgs = this.state.messages;
+    msgs.push(msg);
+        
+    this.setState(() => {
+      return {
+        messages: msgs
+      }
+    })
 
     // Prepend userid
     let newMsg = this.state.id + this.state.lang + this.state.value;
