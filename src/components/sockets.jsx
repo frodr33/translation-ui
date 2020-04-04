@@ -6,9 +6,16 @@ let myKey = ""
 
 const USER_ID = 0;
 const RECIPIENT_ID = 1
-const submitWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/submit');
-const receiveWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/receive');
-const notificationWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/interruptions');
+
+
+const PROD_URL = "translation-backend.herokuapp.com" // Will eventually put this env variables
+const DEV_URL = "localhost:5000"
+
+const baseURL = DEV_URL
+
+const submitWebSocket = new ReconnectingWebSocket('ws://' + baseURL + '/submit');
+const receiveWebSocket = new ReconnectingWebSocket('ws://' + baseURL + '/receive');
+const notificationWebSocket = new ReconnectingWebSocket('ws://' + baseURL + '/interruptions');
 
 
 submitWebSocket.addEventListener('open', () => {
@@ -63,7 +70,7 @@ class Sockets extends Component {
 
         window.onbeforeunload = async function () {
             console.log(myKey)
-            let disconnectUrl = "http://translation-backend.herokuapp.com/disconnect?lang=" + myKey
+            let disconnectUrl = 'http://' + baseURL + "/disconnect?lang=" + myKey
             await fetch(disconnectUrl,{
               method: 'GET',
               headers: {
@@ -76,7 +83,7 @@ class Sockets extends Component {
         }
 
         console.log("lang key: " + this.props.langKey)
-        let fetchUrl = "http://translation-backend.herokuapp.com/connect?lang=" + this.props.langKey + "&id=" + this.props.userId
+        let fetchUrl = 'http://' + baseURL + "/connect?lang=" + this.props.langKey + "&id=" + this.props.userId
         console.log("Connecting to backend at: " + fetchUrl)
 
         let otherLanguage = "" // default
