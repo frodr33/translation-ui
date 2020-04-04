@@ -2,10 +2,14 @@ import React, { Component } from 'react';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import { Message } from 'react-chat-ui'
 
+let myKey = ""
+
 const USER_ID = 0;
 const RECIPIENT_ID = 1
 const submitWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/submit');
 const receiveWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/receive');
+const notificationWebSocket = new ReconnectingWebSocket('ws://translation-backend.herokuapp.com/interruptions');
+
 
 submitWebSocket.addEventListener('open', () => {
     console.log("Establishing initial /submit socket connection")
@@ -15,10 +19,15 @@ receiveWebSocket.addEventListener('open', () => {
     console.log("Establishing initial /receive socket connection")
 });
 
+notificationWebSocket.addEventListener('open', () => {
+    console.log("Establishing initial /interruptions socket connection")
+});
+
 
 class Sockets extends Component {
     constructor(props) {
         super(props)
+        myKey = this.props.ownLangKey
 
         receiveWebSocket.onmessage = (event) => {
             let messageRecevied = event.data;
@@ -40,12 +49,22 @@ class Sockets extends Component {
               this.props.receiveMessage(msg)
             }
         }
+
+        notificationWebSocket.onmessage = (event) => {
+            let messageRecevied = event.data;
+            this.props.setTyping(messageRecevied === "2")
+        }
     }
 
     async componentDidMount() {
         console.log("Registering window close event listener")
+        console.log("ownkey: " + this.props.ownLangKey)
+
+
         window.onbeforeunload = async function () {
-            await fetch("http://translation-backend.herokuapp.com/disconnect",{
+            console.log(myKey)
+            let disconnectUrl = "http://translation-backend.herokuapp.com/disconnect?lang=" + myKey
+            await fetch(disconnectUrl,{
               method: 'GET',
               headers: {
                 "access-control-allow-origin" : "*",
@@ -54,7 +73,7 @@ class Sockets extends Component {
             .then(res => console.log(res))
       
             return "Do you really want to close?"
-        };
+        }
 
         console.log("lang key: " + this.props.langKey)
         let fetchUrl = "http://translation-backend.herokuapp.com/connect?lang=" + this.props.langKey + "&id=" + this.props.userId
@@ -87,7 +106,7 @@ class Sockets extends Component {
         })
 
         await getRequest;
-        this.props.setTypingOn()
+        this.props.setTyping(true)
         console.log("Finished connecting successfully")
     }
 
