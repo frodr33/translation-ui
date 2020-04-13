@@ -186,7 +186,7 @@ class App extends Component {
     });
   };
 
-  stopRecording = () => {
+  stopRecording = () => { 
     this.recognition.stop()
     this.setState({
       isRecording: false
