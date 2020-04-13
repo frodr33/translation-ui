@@ -9,7 +9,7 @@ const RECIPIENT_ID = 1;
 
 const PROD_URL = "translation-backend.herokuapp.com"; // Will eventually put this env variables
 const DEV_URL = "localhost:5000";
-const baseURL = DEV_URL;
+const baseURL = PROD_URL;
 
 const submitWebSocket = new ReconnectingWebSocket(
   "ws://" + baseURL + "/submit"
