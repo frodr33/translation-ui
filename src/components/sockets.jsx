@@ -12,13 +12,13 @@ const DEV_URL = "localhost:5000";
 const baseURL = PROD_URL;
 
 const submitWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/submit"
+  "wss://" + baseURL + "/submit"
 );
 const receiveWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/receive"
+  "wss://" + baseURL + "/receive"
 );
 const notificationWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/interruptions"
+  "wss://" + baseURL + "/interruptions"
 );
 
 submitWebSocket.addEventListener("open", () => {
@@ -70,7 +70,7 @@ class Sockets extends Component {
         // New connection. Reconnect
         console.log("Received new connection. Must refresh state.")
 
-        let fetchUrl = 'http://' + baseURL + "/connect";
+        let fetchUrl = 'https://' + baseURL + "/connect";
         let otherLanguage = "";
         let getRequest = fetch(fetchUrl ,{
           method: 'GET',
@@ -122,7 +122,7 @@ class Sockets extends Component {
 
     window.onbeforeunload = async function() {
       console.log(myKey);
-      let disconnectUrl = "http://" + baseURL + "/disconnect?lang=" + myKey;
+      let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey;
       await fetch(disconnectUrl, {
         method: "GET",
         headers: {
@@ -135,7 +135,7 @@ class Sockets extends Component {
 
     console.log("lang key: " + this.props.langKey);
     let fetchUrl =
-      "http://" +
+      "https://" +
       baseURL +
       "/connect?lang=" +
       this.props.langKey +
