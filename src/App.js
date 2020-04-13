@@ -179,12 +179,15 @@ class App extends Component {
   };
 
   startRecording = () => {
+    this.recognition.start()
+    console.log("Using speech-to-text recognizer");
     this.setState({
       isRecording: true
     });
   };
 
   stopRecording = () => {
+    this.recognition.stop()
     this.setState({
       isRecording: false
     });
@@ -219,13 +222,13 @@ class App extends Component {
               <p>Enter message:</p>
               <input type="text" onChange={this.messageChangeHandler} />
             </form>
-            <ReactMic
+            {/* <ReactMic
               record={this.state.isRecording}
               width={0}
               height={0}
               onStop={this.onStop}
               onStart={this.onStart}
-            />
+            /> */}
             {this.state.isRecording ? (
               <Button
                 variant="contained"
