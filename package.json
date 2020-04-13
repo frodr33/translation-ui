@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.9.9",
+    "@material-ui/icons": "^4.9.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
@@ -10,7 +12,9 @@
     "react-chat-ui": "^0.3.2",
     "react-dom": "^16.13.0",
     "react-loading": "^2.0.3",
+    "react-mic": "^12.4.1",
     "react-scripts": "3.4.0",
+    "react-speech-recognition": "^2.0.4",
     "reconnecting-websocket": "^4.4.0"
   },
   "scripts": {
