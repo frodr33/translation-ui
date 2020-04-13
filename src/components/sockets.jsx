@@ -34,6 +34,10 @@ notificationWebSocket.addEventListener('open', () => {
 class Sockets extends Component {
     constructor(props) {
         super(props)
+        this.state = {
+          activeClients: 1
+        };
+
         myKey = this.props.ownLangKey
 
         receiveWebSocket.onmessage = (event) => {
@@ -57,8 +61,52 @@ class Sockets extends Component {
             }
         }
 
-        notificationWebSocket.onmessage = (event) => {
+        notificationWebSocket.onmessage = async (event) => {
             let messageRecevied = event.data;
+
+            if (messageRecevied === "2" && this.state.activeClients == 1) {
+              // New connection. Reconnect
+              console.log("Received new connection. Must refresh state.")
+
+              let fetchUrl = 'http://' + baseURL + "/connect";
+              let otherLanguage = "";
+              let getRequest = fetch(fetchUrl ,{
+                method: 'GET',
+                headers: {
+                  "access-control-allow-origin" : "*",
+                }
+              })
+              .then(res => res.json())
+              .then(res => {
+                console.log("IN SOCKETS /RECONNECTING JSX")
+                console.log(res);
+                res.forEach((v, i) => {
+                    if (v !== this.props.langKey) {
+                        console.log("Other client's language is: " + v);
+                        otherLanguage = v + ":";
+                    }
+                })    
+      
+                if (otherLanguage === "") {
+                    // Both clients choose the same language
+                    otherLanguage = this.props.langKey + ":"
+                }
+      
+              console.log("Changing receipient language to: " + otherLanguage)
+              this.props.setReceipientLanguage(otherLanguage)          
+              })
+
+              await getRequest;
+
+              this.setState({
+                activeClients: 1
+              })
+            } else if (messageRecevied === "1" && this.state.activeClients == 2) {
+              this.setState({
+                activeClients: 1
+              })
+            }
+
             this.props.setTyping(messageRecevied === "2")
         }
     }
