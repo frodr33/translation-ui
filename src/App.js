@@ -8,6 +8,7 @@ import { ReactMic } from "react-mic";
 import Button from "@material-ui/core/Button";
 import Stop from "@material-ui/icons/Stop";
 import KeyboardVoiceIcon from "@material-ui/icons/KeyboardVoice";
+import { rgbToHex } from "@material-ui/core";
 // import PropTypes from "prop-types";
 // import SpeechRecognition from "react-speech-recognition"; // Remove from dependencies if not using
 
@@ -123,8 +124,11 @@ class App extends Component {
     // Create new message
     let msg = new Message({
       id: USER_ID,
-      message: this.state.message
+      message: this.state.message,
+      senderName: this.state.name
     });
+    // testing statement
+    console.log(msg);
 
     let msgs = this.state.messages;
     msgs.push(msg);
@@ -164,6 +168,8 @@ class App extends Component {
 
   messageChangeHandler = event => {
     this.setState({ message: event.target.value });
+    console.log("changed user " + event.data);
+
   };
 
   //mic start 
@@ -193,6 +199,7 @@ class App extends Component {
     });
   };
 
+
   render() {
     return (
       <div>
@@ -209,15 +216,49 @@ class App extends Component {
           ></Sockets>
         ) : (
           <div className="App" onSubmit={this.nameChangeSubmit}>
-            <form>
-              <p>Enter Name:</p>
-              <input type="text" onChange={this.nameChangeHandler} />
+            <form style={{backgroundColor: "#2D9CDB", padding: "20px"}}>
+              <p style={{fontSize:"25px", color:"white"}}>Enter Your Name:</p>
+              <input style={{padding: "5px", width: "200px", marginBottom: "20px"}} type="text" onChange={this.nameChangeHandler} />
             </form>
           </div>
         )}
+        
 
         {this.state.typing ? (
           <div className="App" onSubmit={this.messageSubmit}>
+            {/* Message header  */}
+            <div className="chatName" 
+              style={{backgroundColor: "#2D9CDB", 
+                      textAlign: "center",
+                      color: "white",
+                      padding: "20px",
+                      fontSize: "35px",
+                      marginTop: "20"
+              }}>
+              {this.state.name}
+            </div>
+
+            {/* Chat interface */}
+            <div style={{padding: "20px"}}>
+              <ChatFeed
+                messages={this.state.messages}
+                isTyping={this.state.is_typing}
+                hasInputField={false}
+                showSenderName
+                bubblesCentered={false}
+                bubbleStyles={{
+                  text: {
+                    fontSize: 20
+                  },
+                  chatbubble: {
+                    borderRadius: 12,
+                    padding: 15
+                  }
+                }}
+              />
+            </div>
+            
+            {/* Chat message box - anchor at bottom */}
             <form>
               <p>Enter message:</p>
               <input type="text" onChange={this.messageChangeHandler} />
@@ -265,33 +306,24 @@ class App extends Component {
             />
           </div>
         ) : (
-          <div>
-            <ReactLoading
-              type={"spin"}
-              color={"blue"}
-              height={"10%"}
-              width={"10%"}
-            />
-            <p>Waiting for chat room to fill up</p>
+          <div style={{margin: "50px"}}>
+            <p style={{textAlign: "center"}}>Waiting for others to join chat</p>
+            <div style={{display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: "10px"
+            }}>
+              <ReactLoading
+                type={"spin"}
+                color={"blue"}
+                height={"10%"}
+                width={"10%"}
+              />
+            </div>
           </div>
-        )}
+          )}
 
-        <ChatFeed
-          messages={this.state.messages}
-          isTyping={this.state.is_typing}
-          hasInputField={false}
-          showSenderName
-          bubblesCentered={false}
-          bubbleStyles={{
-            text: {
-              fontSize: 30
-            },
-            chatbubble: {
-              borderRadius: 70,
-              padding: 40
-            }
-          }}
-        />
+        
       </div>
     );
   }
