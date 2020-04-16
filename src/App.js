@@ -4,11 +4,7 @@ import { ChatFeed, Message } from "react-chat-ui";
 import "./App.css";
 import { Sockets, submitWebSocket, USER_ID } from "./components/sockets";
 import Languages from "./components/languages";
-import { ReactMic } from "react-mic";
-import Button from "@material-ui/core/Button";
-import Stop from "@material-ui/icons/Stop";
-import KeyboardVoiceIcon from "@material-ui/icons/KeyboardVoice";
-import { rgbToHex } from "@material-ui/core";
+
 // import PropTypes from "prop-types";
 // import SpeechRecognition from "react-speech-recognition"; // Remove from dependencies if not using
 
@@ -26,21 +22,21 @@ class App extends Component {
       language = language.toLowerCase();
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    const recognition = new SpeechRecognition()
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
 
-    recognition.continuous = true
-    recognition.lang = Languages[language]
+    recognition.continuous = true;
+    recognition.lang = Languages[language];
 
-    recognition.onresult = (e) => {
-      const current = e.resultIndex
-      const transcript = e.results[current][0].transcript
-      console.log("you said: " + transcript)
+    recognition.onresult = e => {
+      const current = e.resultIndex;
+      const transcript = e.results[current][0].transcript;
+      console.log("you said: " + transcript);
 
-
-      console.log(this.state.id)
-      console.log(this.state.lang)
-      console.log(transcript)
+      console.log(this.state.id);
+      console.log(this.state.lang);
+      console.log(transcript);
 
       let messageSent = this.state.id + this.state.lang + transcript;
       console.log("Sent wrapped message: " + messageSent);
@@ -49,19 +45,21 @@ class App extends Component {
         id: USER_ID,
         message: transcript
       });
-  
+
       let msgs = this.state.messages;
       msgs.push(msg);
-  
+
       this.setState(() => {
         return {
           messages: msgs
         };
+
       });
-  
+      
       submitWebSocket.send(messageSent);
-    }
-    this.recognition = recognition
+     
+    };
+    this.recognition = recognition;
 
     this.state = {
       id: "",
@@ -71,9 +69,9 @@ class App extends Component {
       messages: [],
       typing: false,
       name: "",
-      isRecording: false, 
-      blobURL: null
+      isRecording: false
     };
+   
   }
 
   /**
@@ -105,12 +103,14 @@ class App extends Component {
   receiveMessage = message => {
     let msgs = this.state.messages;
     msgs.push(message);
-
+    
     this.setState(() => {
       return {
         messages: msgs
       };
     });
+    
+    
   };
 
   /**
@@ -129,9 +129,14 @@ class App extends Component {
     });
     // testing statement
     console.log(msg);
-
+    const messages = document.getElementById('messagefeed');
+    let shouldScroll = messages.scrollTop + messages.clientHeight === messages.scrollHeight;
     let msgs = this.state.messages;
     msgs.push(msg);
+    if (!shouldScroll) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+   
 
     this.setState(() => {
       return {
@@ -167,38 +172,39 @@ class App extends Component {
   };
 
   messageChangeHandler = event => {
-    this.setState({ message: event.target.value });
+    this.setState({ message: document.getElementById("inputmessage").value });
     console.log("changed user " + event.data);
-
   };
 
-  //mic start 
-  onStart = () => {
-    this.recognition.start()
-    console.log("Using speech-to-text recognizer");
+  handleRecordChange = () => {
+    const button = document.getElementById("btn");
+
+    if (this.state.isRecording == true) {
+      this.stopRecording();
+      button.disabled = false;
+    } else {
+      this.startRecording();
+      button.disabled = true;
+    }
   };
 
-  onStop = async blobObject => {
-    this.recognition.stop()
-    this.setState({ blobURL: blobObject.blobURL });
-    console.log("Done recording")
-  };
+ 
 
   startRecording = () => {
-    this.recognition.start()
+    this.recognition.start();
     console.log("Using speech-to-text recognizer");
     this.setState({
       isRecording: true
     });
   };
 
-  stopRecording = () => { 
-    this.recognition.stop()
+  stopRecording = () => {
+    this.recognition.stop();
+    console.log("recognizer stop");
     this.setState({
       isRecording: false
     });
   };
-
 
   render() {
     return (
@@ -212,34 +218,45 @@ class App extends Component {
             setTypingOn={this.setTypingOn}
             ownLangKey={this.state.ownLanguage}
             setTyping={this.setTyping}
-            recordMessage={this.blobURL}
           ></Sockets>
         ) : (
           <div className="App" onSubmit={this.nameChangeSubmit}>
-            <form style={{backgroundColor: "#2D9CDB", padding: "20px"}}>
-              <p style={{fontSize:"25px", color:"white"}}>Enter Your Name:</p>
-              <input style={{padding: "5px", width: "200px", marginBottom: "20px"}} type="text" onChange={this.nameChangeHandler} />
+            <form style={{ backgroundColor: "#2D9CDB", padding: "20px" }}>
+              <p style={{ fontSize: "25px", color: "white" }}>
+                Enter Your Name:
+              </p>
+              <input
+                style={{ padding: "5px", width: "200px", marginBottom: "20px" }}
+                type="text"
+                onChange={this.nameChangeHandler}
+              />
             </form>
           </div>
         )}
-        
 
         {this.state.typing ? (
           <div className="App" onSubmit={this.messageSubmit}>
             {/* Message header  */}
-            <div className="chatName" 
-              style={{backgroundColor: "#2D9CDB", 
-                      textAlign: "center",
-                      color: "white",
-                      padding: "20px",
-                      fontSize: "35px",
-                      marginTop: "20"
-              }}>
+            <div
+              className="chatName"
+              style={{
+                overflow: "hidden",
+                position: "sticky",
+                top:0,
+                width:"100%",
+                backgroundColor: "#2D9CDB",
+                textAlign: "center",
+                color: "white",
+                padding: "20px",
+                fontSize: "35px",
+                marginTop: "20"
+              }}
+            >
               {this.state.name}
             </div>
 
             {/* Chat interface */}
-            <div style={{padding: "20px"}}>
+            <div id = "messagefeed" style={{ padding: "20px",marginBottom: "50px", height: "510px", overflowY: "auto"}}>
               <ChatFeed
                 messages={this.state.messages}
                 isTyping={this.state.is_typing}
@@ -257,62 +274,96 @@ class App extends Component {
                 }}
               />
             </div>
-            
-            {/* Chat message box - anchor at bottom */}
-            <form>
-              <p>Enter message:</p>
-              <input type="text" onChange={this.messageChangeHandler} />
-            </form>
-            {/* <ReactMic
-              record={this.state.isRecording}
-              width={0}
-              height={0}
-              onStop={this.onStop}
-              onStart={this.onStart}
-            /> */}
-            {this.state.isRecording ? (
-              <Button
-                variant="contained"
-                color="secondary"
-                disabled
-                startIcon={<KeyboardVoiceIcon />}
-                onClick={this.startRecording}
-              >
-                Talk
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<KeyboardVoiceIcon />}
-                onClick={this.startRecording}
-              >
-                Talk
-              </Button>
-            )}
 
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<Stop />}
-              onClick={this.stopRecording}
+            <div
+              className="bottomchatbar"
+              style={{
+                position: "fixed",
+                bottom: 0,
+                width: "100%",
+                backgroundColor: "#DCDCDC",
+                height: "10%",
+                display: "flex",
+                justifyContent: "space-around",
+                flexFlow: "row wrap",
+                alignItems: "stretch"
+              }}
             >
-              Stop
-            </Button>
-            <audio
-              controls="controls"
-              src={this.state.blobURL}
-              controlsList="nodownload"
-            />
+              <div
+                class="input"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "stretch",
+                  flexGrow: 3,
+                  backgroundColor: "white",
+                  marginBottom: "10px",
+                  marginTop: "9px",
+                  marginLeft: "9px"
+                }}
+              >
+                <form style={{ flexGrow: 10 }}>
+                  <input
+                    id="inputmessage"
+                    type="text"
+                    placeholder="Enter Message :"
+                    onChange={this.messageChangeHandler}
+                    style={{
+                      borderColor: "transparent",
+                      outline: "none",
+                      fontSize: "20px",
+                      width: "100%",
+                      marginTop:"10px",
+                      marginLeft:"20px"
+                    }}
+                  />
+                </form>
+                <button
+                  style={{ flexGrow: 1 }}
+                  id="btn"
+                  onClick={this.handleRecordChange}
+                >
+                  <i class="fa fa-microphone"></i>
+                </button>
+              </div>
+              <form
+                style={{
+                  flexGrow: 1,
+                  marginBottom: "9px",
+                  marginTop: "9px",
+                  marginLeft: "5px",
+                  marginRight: "9px"
+                }}
+              >
+                <button
+                  style={{
+                    backgroundColor: "#2D9CDB",
+                    color: "white",
+                    fontSize: 20,
+                    width: "100%",
+                    height: "100%"
+                  }}
+                  type="submit"
+                  onClick={this.messageChangeHandler}
+                >
+                  Send
+                </button>
+              </form>
+            </div>
           </div>
         ) : (
-          <div style={{margin: "50px"}}>
-            <p style={{textAlign: "center"}}>Waiting for others to join chat</p>
-            <div style={{display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        margin: "10px"
-            }}>
+          <div style={{ margin: "50px" }}>
+            <p style={{ textAlign: "center" }}>
+              Waiting for others to join chat
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                margin: "10px"
+              }}
+            >
               <ReactLoading
                 type={"spin"}
                 color={"blue"}
@@ -321,9 +372,7 @@ class App extends Component {
               />
             </div>
           </div>
-          )}
-
-        
+        )}
       </div>
     );
   }

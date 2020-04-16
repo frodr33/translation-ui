@@ -60,6 +60,9 @@ class Sockets extends Component {
 
         console.log("Message received: " + messageRecevied);
         this.props.receiveMessage(msg);
+
+        // var elem = document.getElementById('messagefeed');
+        // elem.scrollTop = elem.scrollHeight;
       }
     };
 
