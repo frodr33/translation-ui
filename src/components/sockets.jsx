@@ -62,11 +62,13 @@ class Sockets extends Component {
         console.log("Message received: " + messageRecevied);
         this.props.receiveMessage(msg);
 
-        let senderString = this.props.userId;
+        // let senderString = this.props.userId;
         otherName = event.data.substring(0, event.data.indexOf("_"));
         this.props.setOtherName(otherName);
         console.log(event.data);
         console.log("Message sender: " + otherName);
+        // var elem = document.getElementById('messagefeed');
+        // elem.scrollTop = elem.scrollHeight;
       }
     };
 
@@ -188,7 +190,11 @@ class Sockets extends Component {
 
     return (
       <div className="chatName" 
-        style={{backgroundColor: "#2D9CDB", 
+        style={{overflow: "hidden",
+                position: "sticky",
+                top:0,
+                width:"100%",
+                backgroundColor: "#2D9CDB", 
                 textAlign: "center",
                 color: "white",
                 padding: "20px",
