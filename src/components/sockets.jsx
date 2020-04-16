@@ -6,6 +6,7 @@ let myKey = "";
 
 const USER_ID = 0;
 const RECIPIENT_ID = 1;
+let otherName = ""; //test
 
 const PROD_URL = "translation-backend.herokuapp.com"; // Will eventually put this env variables
 const DEV_URL = "localhost:5000";
@@ -44,7 +45,7 @@ class Sockets extends Component {
 
     receiveWebSocket.onmessage = event => {
       let messageRecevied = event.data;
-      let message_id;
+      let message_id; 
 
       if (messageRecevied.indexOf(this.props.userId) === -1) {
         message_id = RECIPIENT_ID;
@@ -60,6 +61,12 @@ class Sockets extends Component {
 
         console.log("Message received: " + messageRecevied);
         this.props.receiveMessage(msg);
+
+        let senderString = this.props.userId;
+        otherName = event.data.substring(0, event.data.indexOf("_"));
+        this.props.setOtherName(otherName);
+        console.log(event.data);
+        console.log("Message sender: " + otherName);
       }
     };
 
@@ -177,9 +184,20 @@ class Sockets extends Component {
     })
     console.log("Finished connecting successfully");
   }
-
   render() {
-    return <div></div>;
+
+    return (
+      <div className="chatName" 
+        style={{backgroundColor: "#2D9CDB", 
+                textAlign: "center",
+                color: "white",
+                padding: "20px",
+                fontSize: "35px",
+                marginTop: "20"
+        }}>
+          {otherName}
+      </div>
+    );
   }
 }
 

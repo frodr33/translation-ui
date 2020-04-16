@@ -72,7 +72,8 @@ class App extends Component {
       typing: false,
       name: "",
       isRecording: false, 
-      blobURL: null
+      blobURL: null,
+      otherName: ""
     };
   }
 
@@ -95,6 +96,17 @@ class App extends Component {
     this.setState(() => {
       return {
         lang: lang
+      };
+    });
+  };
+
+  /** TEST
+   * Setting the name of the other client
+   */
+  setOtherName = otherName => {
+    this.setState(() => {
+      return {
+        otherName: otherName
       };
     });
   };
@@ -213,6 +225,7 @@ class App extends Component {
             ownLangKey={this.state.ownLanguage}
             setTyping={this.setTyping}
             recordMessage={this.blobURL}
+            setOtherName={this.setOtherName} //TEST
           ></Sockets>
         ) : (
           <div className="App" onSubmit={this.nameChangeSubmit}>
@@ -226,18 +239,6 @@ class App extends Component {
 
         {this.state.typing ? (
           <div className="App" onSubmit={this.messageSubmit}>
-            {/* Message header  */}
-            <div className="chatName" 
-              style={{backgroundColor: "#2D9CDB", 
-                      textAlign: "center",
-                      color: "white",
-                      padding: "20px",
-                      fontSize: "35px",
-                      marginTop: "20"
-              }}>
-              {this.state.name}
-            </div>
-
             {/* Chat interface */}
             <div style={{padding: "20px"}}>
               <ChatFeed
