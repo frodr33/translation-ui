@@ -199,7 +199,8 @@ class Sockets extends Component {
                 color: "white",
                 padding: "20px",
                 fontSize: "35px",
-                marginTop: "20"
+                marginTop: "20",
+                zIndex:"3"
         }}>
           {otherName}
       </div>
