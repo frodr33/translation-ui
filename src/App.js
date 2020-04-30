@@ -11,6 +11,8 @@ import Languages from "./components/languages";
 class App extends Component {
   constructor(props) {
     super(props);
+    let roomID = prompt("Enter chat room ID");
+  
     let language = prompt(
       "Please enter your preferred language (Will change this to dropdown)",
       "English"
@@ -38,7 +40,7 @@ class App extends Component {
       console.log(this.state.lang);
       console.log(transcript);
 
-      let messageSent = this.state.id + this.state.lang + transcript;
+      let messageSent = this.state.id + this.state.lang + transcript + ":" + this.state.roomID;
       console.log("Sent wrapped message: " + messageSent);
 
       let msg = new Message({
@@ -65,9 +67,10 @@ class App extends Component {
       id: "",
       ownLanguage: Languages[language],
       lang: Languages[language],
+      roomID: roomID,
       message: "",
       messages: [],
-      typing: false,
+      typing: true,
       name: "",
       isRecording: false, 
       otherName: ""
@@ -136,8 +139,7 @@ class App extends Component {
     // Create new message
     let msg = new Message({
       id: USER_ID,
-      message: this.state.message,
-      senderName: this.state.name
+      message: this.state.message
     });
     // testing statement
     console.log(msg);
@@ -157,7 +159,7 @@ class App extends Component {
     });
 
     // Prepend userid
-    let messageSent = this.state.id + this.state.lang + this.state.message;
+    let messageSent = this.state.id + this.state.lang + this.state.message + ":" + this.state.roomID;
     console.log("Sent wrapped message: " + messageSent);
 
     submitWebSocket.send(messageSent);
@@ -226,6 +228,7 @@ class App extends Component {
             receiveMessage={this.receiveMessage}
             userId={this.state.id}
             langKey={this.state.lang}
+            roomID={this.state.roomID}
             setReceipientLanguage={this.setReceipientLanguage}
             setTypingOn={this.setTypingOn}
             ownLangKey={this.state.ownLanguage}

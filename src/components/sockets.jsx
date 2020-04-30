@@ -3,6 +3,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import { Message } from "react-chat-ui";
 
 let myKey = "";
+let roomID = "";
 
 const USER_ID = 0;
 const RECIPIENT_ID = 1;
@@ -10,38 +11,45 @@ let otherName = ""; //test
 
 const PROD_URL = "translation-backend.herokuapp.com"; // Will eventually put this env variables
 const DEV_URL = "localhost:5000";
-const baseURL = DEV_URL;
+const baseURL = PROD_URL;
 
 const submitWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/submit"
+  "wss://" + baseURL + "/submit"
 );
-const receiveWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/receive"
-);
-const notificationWebSocket = new ReconnectingWebSocket(
-  "ws://" + baseURL + "/interruptions"
-);
+
 
 submitWebSocket.addEventListener("open", () => {
   console.log("Establishing initial /submit socket connection");
 });
 
-receiveWebSocket.addEventListener("open", () => {
-  console.log("Establishing initial /receive socket connection");
-});
-
-notificationWebSocket.addEventListener("open", () => {
-  console.log("Establishing initial /interruptions socket connection");
-});
-
 class Sockets extends Component {
   constructor(props) {
+    console.log("CREATING SOCKETS")
     super(props);
     myKey = this.props.ownLangKey;
+    roomID = this.props.roomID;
 
     this.state = {
       activeClients: 0
     };
+
+    const receiveWebSocket = new ReconnectingWebSocket(
+      "wss://" + baseURL + "/receive"
+    );
+    const notificationWebSocket = new ReconnectingWebSocket(
+      "wss://" + baseURL + "/interruptions"
+    );
+
+    notificationWebSocket.addEventListener("open", () => {
+      console.log(this.props.roomID)
+      notificationWebSocket.send(this.props.roomID)
+      console.log("Establishing initial /interruptions socket connection");
+    });
+
+    receiveWebSocket.addEventListener("open", () => {
+      receiveWebSocket.send(this.props.roomID + ":" + this.props.userId)
+      console.log("Establishing initial /receive socket connection");
+    });
 
     receiveWebSocket.onmessage = event => {
       let messageRecevied = event.data;
@@ -54,74 +62,28 @@ class Sockets extends Component {
 
         messageRecevied = messageRecevied.substring(messageIndex);
 
-        let msg = new Message({
-          id: message_id,
-          message: messageRecevied
-        });
 
         console.log("Message received: " + messageRecevied);
-        this.props.receiveMessage(msg);
 
-        // let senderString = this.props.userId;
         otherName = event.data.substring(0, event.data.indexOf("_"));
         this.props.setOtherName(otherName);
+
+        let msg = new Message({
+          id: message_id,
+          message: otherName + ": " + messageRecevied
+        });
         console.log(event.data);
         console.log("Message sender: " + otherName);
-        // var elem = document.getElementById('messagefeed');
-        // elem.scrollTop = elem.scrollHeight;
+        this.props.receiveMessage(msg);
       }
     };
 
     notificationWebSocket.onmessage = async (event) => {
-      let messageRecevied = event.data;
-
-      if (messageRecevied === "2" && this.state.activeClients == 1) {
-        // New connection. Reconnect
-        console.log("Received new connection. Must refresh state.")
-
-        let fetchUrl = 'http://' + baseURL + "/connect";
-        let otherLanguage = "";
-        let getRequest = fetch(fetchUrl ,{
-          method: 'GET',
-          headers: {
-            "access-control-allow-origin" : "*",
-          }
-        })
-        .then(res => res.json())
-        .then(res => {
-          // console.log("IN SOCKETS /RECONNECTING JSX")
-          // console.log(res);
-          res.forEach((v, i) => {
-
-              console.log(this.props.ownLangKey)
-
-              if (v !== this.props.ownLangKey) {
-                  console.log("Other client's language is: " + v);
-                  otherLanguage = v + ":";
-              }
-          })    
-
-          if (otherLanguage === "") {
-              // Both clients choose the same language
-              otherLanguage = this.props.ownLangKey + ":"
-          }
-
-        console.log("Changing receipient language to: " + otherLanguage)
-        this.props.setReceipientLanguage(otherLanguage)          
-        })
-
-        await getRequest;
-
-        this.setState({
-          activeClients: 2
-        })
-      } else if (messageRecevied === "1" && this.state.activeClients == 2) {
-        this.setState({
-          activeClients: 1
-        })
-      }
-
-      this.props.setTyping(messageRecevied === "2")
+      let numberOfClients = event.data;
+      console.log(numberOfClients)
+      this.setState({
+        activeClients: numberOfClients
+      })
   }
   }
 
@@ -131,7 +93,7 @@ class Sockets extends Component {
 
     window.onbeforeunload = async function() {
       console.log(myKey);
-      let disconnectUrl = "http://" + baseURL + "/disconnect?lang=" + myKey;
+      let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey + "&roomID=" + roomID;
       await fetch(disconnectUrl, {
         method: "GET",
         headers: {
@@ -144,12 +106,15 @@ class Sockets extends Component {
 
     console.log("lang key: " + this.props.langKey);
     let fetchUrl =
-      "http://" +
+      "https://" +
       baseURL +
       "/connect?lang=" +
       this.props.langKey +
       "&id=" +
-      this.props.userId;
+      this.props.userId +
+      "&roomID=" +
+      this.props.roomID;
+
     console.log("Connecting to backend at: " + fetchUrl);
 
     let otherLanguage = ""; // default
@@ -197,12 +162,13 @@ class Sockets extends Component {
                 backgroundColor: "#2D9CDB", 
                 textAlign: "center",
                 color: "white",
-                padding: "20px",
+                padding: "10px",
                 fontSize: "35px",
                 marginTop: "20",
                 zIndex:"3"
         }}>
-          {otherName}
+          <p>Chat Room: {this.props.roomID}</p>
+          <p>Capacity: {this.state.activeClients} / 10</p>
       </div>
     );
   }
