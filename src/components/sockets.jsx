@@ -4,6 +4,7 @@ import { Message } from "react-chat-ui";
 
 let myKey = "";
 let roomID = "";
+let userID = "";
 
 const USER_ID = 0;
 const RECIPIENT_ID = 1;
@@ -28,6 +29,7 @@ class Sockets extends Component {
     super(props);
     myKey = this.props.ownLangKey;
     roomID = this.props.roomID;
+    userID = this.props.userId;
 
     this.state = {
       activeClients: 0
@@ -93,7 +95,7 @@ class Sockets extends Component {
 
     window.onbeforeunload = async function() {
       console.log(myKey);
-      let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey + "&roomID=" + roomID;
+      let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey + "&roomID=" + roomID + "&userID=" + userID;
       await fetch(disconnectUrl, {
         method: "GET",
         headers: {
