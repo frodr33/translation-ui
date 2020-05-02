@@ -70,7 +70,7 @@ class App extends Component {
       roomID: roomID,
       message: "",
       messages: [],
-      typing: true,
+      typing: false,
       name: "",
       isRecording: false, 
       otherName: ""
@@ -179,6 +179,7 @@ class App extends Component {
         .substr(2, 9) +
       ":";
     this.setState({ id: user_id });
+    this.setState({ typing: true })
   };
 
   nameChangeHandler = event => {
