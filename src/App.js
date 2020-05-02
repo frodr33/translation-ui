@@ -5,77 +5,21 @@ import "./App.css";
 import { Sockets, submitWebSocket, USER_ID } from "./components/sockets";
 import Languages from "./components/languages";
 
-// import PropTypes from "prop-types";
-// import SpeechRecognition from "react-speech-recognition"; // Remove from dependencies if not using
-
 class App extends Component {
   constructor(props) {
     super(props);
-    let roomID = prompt("Enter chat room ID");
-  
-    let language = prompt(
-      "Please enter your preferred language (Will change this to dropdown)",
-      "English"
-    );
-    language = language.toLowerCase();
-
-    while (!Languages[language]) {
-      language = prompt("Sorry, please pick a different language", "English");
-      language = language.toLowerCase();
-    }
-
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-
-    recognition.continuous = true;
-    recognition.lang = Languages[language];
-
-    recognition.onresult = e => {
-      const current = e.resultIndex;
-      const transcript = e.results[current][0].transcript;
-      console.log("you said: " + transcript);
-
-      console.log(this.state.id);
-      console.log(this.state.lang);
-      console.log(transcript);
-
-      let messageSent = this.state.id + this.state.lang + transcript + ":" + this.state.roomID;
-      console.log("Sent wrapped message: " + messageSent);
-
-      let msg = new Message({
-        id: USER_ID,
-        message: transcript
-      });
-
-      let msgs = this.state.messages;
-      msgs.push(msg);
-
-      this.setState(() => {
-        return {
-          messages: msgs
-        };
-
-      });
-      
-      submitWebSocket.send(messageSent);
-     
-    };
-    this.recognition = recognition;
 
     this.state = {
       id: "",
-      ownLanguage: Languages[language],
-      lang: Languages[language],
-      roomID: roomID,
       message: "",
+      ownLanguage: "af",
+      lang: "af",
       messages: [],
       typing: false,
       name: "",
       isRecording: false, 
       otherName: ""
     };
-   
   }
 
   /**
@@ -135,6 +79,7 @@ class App extends Component {
    */
   messageSubmit = event => {
     event.preventDefault();
+    document.getElementById('inputmessage').value='';
 
     // Create new message
     let msg = new Message({
@@ -221,6 +166,89 @@ class App extends Component {
     });
   };
 
+  validated = () => {
+    return this.state.name && this.state.roomID && this.state.ownLanguage;
+  }
+
+  roomSubmit = event => {
+    event.preventDefault();
+
+    if (!this.validated()) {
+      alert("Please enter another value for room ID or name")
+      return
+    }
+
+    console.log(this.state.ownLanguage)
+    console.log(this.state.roomID)
+    console.log(this.state.name)
+
+    let user_id =
+    this.state.name +
+    "_" +
+    Math.random()
+      .toString(36)
+      .substr(2, 9) +
+    ":";
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.lang = this.state.ownLanguage;
+
+    recognition.onresult = e => {
+      const current = e.resultIndex;
+      const transcript = e.results[current][0].transcript;
+      console.log("you said: " + transcript);
+
+      console.log(this.state.id);
+      console.log(this.state.lang);
+      console.log(transcript);
+
+      let messageSent = this.state.id + this.state.lang + transcript + ":" + this.state.roomID;
+      console.log("Sent wrapped message: " + messageSent);
+
+      let msg = new Message({
+        id: USER_ID,
+        message: transcript
+      });
+
+      let msgs = this.state.messages;
+      msgs.push(msg);
+
+      this.setState(() => {
+        return {
+          messages: msgs
+        };
+
+      });
+      
+      submitWebSocket.send(messageSent);
+    }
+
+    this.recognition = recognition;
+
+    this.setState({ id: user_id });
+    this.setState({ typing: true })
+  };
+
+  roomChange = event => {
+    event.preventDefault();
+    this.setState({ roomID: event.target.value})
+  }; 
+
+  languageSubmit = event => {
+    event.preventDefault();
+  };
+
+  languageChange = event => {
+    event.preventDefault();
+    this.setState({ ownLanguage : Languages[event.target.value] })
+    this.setState({ lang: Languages[event.target.value]})
+  }; 
+
+
   render() {
     return (
       <div>
@@ -237,16 +265,41 @@ class App extends Component {
             setOtherName={this.setOtherName}
           ></Sockets>
         ) : (
-          <div className="App" onSubmit={this.nameChangeSubmit}>
-            <form style={{ backgroundColor: "#2D9CDB", padding: "20px" }}>
-              <p style={{ fontSize: "25px", color: "white" }}>
-                Enter Your Name:
-              </p>
-              <input
-                style={{ padding: "5px", width: "200px", marginBottom: "20px" }}
-                type="text"
-                onChange={this.nameChangeHandler}
-              />
+          <div className="App">
+            <form style={{ backgroundColor: "#2D9CDB", padding: "20px" }} onSubmit={(e) => e.preventDefault()}>
+              <div>
+                <p style={{ fontSize: "25px", color: "white" }}>
+                  Enter Chat Room:
+                </p>
+                <input
+                  style={{ padding: "5px", width: "200px", marginBottom: "20px" }}
+                  type="text"
+                  onChange={this.roomChange}
+                /> 
+              </div>
+              <div>
+                <p style={{ fontSize: "25px", color: "white" }}>
+                  Enter Name:
+                </p>
+                <input
+                  style={{ padding: "5px", width: "200px", marginBottom: "20px" }}
+                  type="text"
+                  onChange={this.nameChangeHandler}
+                />        
+              </div>
+              <div>
+                <p style={{ fontSize: "25px", color: "white" }}>
+                Pick your preferred language:
+                </p>
+                <select onChange={this.languageChange}>
+                  {Object.keys(Languages).map((lang, i) => {
+                    return <option key={i} value={lang}>{lang}</option>
+                  })}
+                </select>
+              </div>
+            </form>
+            <form style={{ backgroundColor: "#2D9CDB", padding: "20px" }} onSubmit={this.roomSubmit}>
+              <button type="submit">Submit</button>
             </form>
           </div>
         )}
@@ -288,7 +341,7 @@ class App extends Component {
               }}
             >
               <div
-                class="input"
+                className="input"
                 style={{
                   display: "flex",
                   flexDirection: "row",
@@ -321,7 +374,7 @@ class App extends Component {
                   id="btn"
                   onClick={this.handleRecordChange}
                 >
-                  <i class="fa fa-microphone"></i>
+                  <i className="fa fa-microphone"></i>
                 </button>
               </div>
               <form
@@ -351,7 +404,7 @@ class App extends Component {
           </div>
         ) : (
           <div style={{ margin: "50px" }}>
-            <p style={{ textAlign: "center" }}>
+            {/* <p style={{ textAlign: "center" }}>
               Waiting for others to join chat
             </p>
             <div
@@ -368,7 +421,7 @@ class App extends Component {
                 height={"10%"}
                 width={"10%"}
               />
-            </div>
+            </div> */}
           </div>
         )}
       </div>
