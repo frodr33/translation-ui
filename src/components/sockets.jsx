@@ -5,6 +5,7 @@ import { Message } from "react-chat-ui";
 let myKey = "";
 let roomID = "";
 let userID = "";
+let connected = true;
 
 const USER_ID = 0;
 const RECIPIENT_ID = 1;
@@ -93,18 +94,22 @@ class Sockets extends Component {
     console.log("Registering window close event listener");
     console.log("ownkey: " + this.props.ownLangKey);
 
-    window.onbeforeunload = async function() {
-      console.log(myKey);
-      let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey + "&roomID=" + roomID + "&userID=" + userID;
-      await fetch(disconnectUrl, {
-        method: "GET",
-        headers: {
-          "access-control-allow-origin": "*"
-        }
-      }).then(res => console.log(res));
+    // window.onbeforeunload = async function(event) {
+    //   event.preventDefault()
+    //   console.log("here")
+    //   let disconnectUrl = "https://" + baseURL + "/disconnect?lang=" + myKey + "&roomID=" + roomID + "&userID=" + userID;
+    //   await fetch(disconnectUrl, {
+    //     method: "GET",
+    //     headers: {
+    //       "access-control-allow-origin": "*"
+    //     }
+    //   }).then(res => console.log(res));
+    //   console.log("here2")
 
-      return "Do you really want to close?";
-    };
+
+    //   console.log(window.confirm())
+    //   return undefined
+    // };
 
     console.log("lang key: " + this.props.langKey);
     let fetchUrl =
