@@ -32,11 +32,6 @@ healthCheckSocket.addEventListener("open", () => {
   console.log("Establishing initial /healthcheck socket connection");
 });
 
-const executeAsync = (f) => {
-  console.log("in execute async")
-  setTimeout(f, 1)
-}
-
 function timeout(f) {
   setTimeout(function () {
       f()
@@ -76,7 +71,6 @@ class Sockets extends Component {
 
     let healthData = userID;
     const sendHealthStatus = () => {
-      console.log("sending health check")
       healthCheckSocket.send(healthData)
     }
     timeout(sendHealthStatus);
@@ -111,7 +105,6 @@ class Sockets extends Component {
 
     notificationWebSocket.onmessage = async (event) => {
       let numberOfClients = event.data;
-      console.log(numberOfClients)
       this.setState({
         activeClients: numberOfClients
       })

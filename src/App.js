@@ -18,7 +18,8 @@ class App extends Component {
       typing: false,
       name: "",
       isRecording: false, 
-      otherName: ""
+      otherName: "",
+      disabled: false
     };
   }
 
@@ -137,14 +138,21 @@ class App extends Component {
   };
 
   handleRecordChange = () => {
-    const button = document.getElementById("btn");
+    // const button = document.getElementById("btn");
+
+    console.log(this.state.isRecording);
 
     if (this.state.isRecording == true) {
       this.stopRecording();
-      button.disabled = false;
+      this.setState({
+        disabled: false
+      })
+
     } else {
       this.startRecording();
-      button.disabled = true;
+      this.setState({
+        disabled: true
+      })
     }
   };
 
@@ -369,13 +377,25 @@ class App extends Component {
                     }}
                   />
                 </form>
-                <button
+
+
+                {this.state.disabled ? 
+                  <button
+                  style={{ flexGrow: 1 }}
+                  id="btnDisabled"
+                  onClick={this.handleRecordChange}
+                  >
+                    <i className="fa fa-microphone"></i>
+                  </button> :
+                  <button
                   style={{ flexGrow: 1 }}
                   id="btn"
                   onClick={this.handleRecordChange}
-                >
+                  >
                   <i className="fa fa-microphone"></i>
-                </button>
+                  </button>
+                }
+
               </div>
               <form
                 style={{

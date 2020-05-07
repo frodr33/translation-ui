@@ -19,9 +19,15 @@ code {
   border: none;
   font-size: 36px;
 }
+
 #btn:hover {
   background-color: RoyalBlue;
 }
-#btn:disabled {
+
+#btnDisabled {
+  cursor: pointer;
+  color: #2d9cdb;
   background-color: RoyalBlue;
+  border: none;
+  font-size: 36px;
 }
