@@ -19,10 +19,30 @@ const submitWebSocket = new ReconnectingWebSocket(
   "wss://" + baseURL + "/submit"
 );
 
+const healthCheckSocket = new ReconnectingWebSocket(
+  "wss://" + baseURL + "/healthcheck"
+);
+
 
 submitWebSocket.addEventListener("open", () => {
   console.log("Establishing initial /submit socket connection");
 });
+
+healthCheckSocket.addEventListener("open", () => {
+  console.log("Establishing initial /healthcheck socket connection");
+});
+
+const executeAsync = (f) => {
+  console.log("in execute async")
+  setTimeout(f, 1)
+}
+
+function timeout(f) {
+  setTimeout(function () {
+      f()
+      timeout(f);
+  }, 5000);
+}
 
 class Sockets extends Component {
   constructor(props) {
@@ -53,6 +73,14 @@ class Sockets extends Component {
       receiveWebSocket.send(this.props.roomID + ":" + this.props.userId)
       console.log("Establishing initial /receive socket connection");
     });
+
+    let healthData = userID;
+    const sendHealthStatus = () => {
+      console.log("sending health check")
+      healthCheckSocket.send(healthData)
+    }
+    timeout(sendHealthStatus);
+
 
     receiveWebSocket.onmessage = event => {
       let messageRecevied = event.data;
